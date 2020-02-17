@@ -33,9 +33,9 @@ if __name__ == "__main__":
     # joint controls
     print('Rotating last joint')
     joints = fa.get_joints()
-    joints[7] += np.deg2rad(45)
+    joints[6] += np.deg2rad(45)
     fa.goto_joints(joints)
-    joints[7] -= np.deg2rad(45)
+    joints[6] -= np.deg2rad(45)
     fa.goto_joints(joints)
 
     # end-effector pose control
