@@ -1,15 +1,28 @@
+import argparse
 import numpy as np
+from time import sleep
 import rospy
+from tqdm import tqdm
+from frankapy import FrankaArm
 
 from franka_robot import FrankaRobot 
 from collision_boxes_publisher import CollisionBoxesPublisher
-from rrt import RRT
+from rrt_solutions import RRT
 
 
 if __name__ == '__main__':
-    np.random.seed(0)
-    rospy.init_node('rrt')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--run_on_robot', action='store_true')
+    parser.add_argument('--seed', '-s', type=int, default=0)
+    args = parser.parse_args()
+
+    np.random.seed(args.seed)
     fr = FrankaRobot()
+
+    if args.run_on_robot:
+        fa = FrankaArm()
+    else:
+        rospy.init_node('rrt')
 
     boxes = np.array([
         # obstacle
@@ -70,5 +83,41 @@ if __name__ == '__main__':
         fr.publish_collision_boxes(joints)
         collision_boxes_publisher.publish_boxes(boxes)
 
+        if i > len(plan) * 3:
+            while True:
+                inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
+                if len(inp) == 1 and inp in 'cr':
+                    break
+                print('Please enter a valid input! Only c and r are accepted!')
+            if inp == 'r':
+                i = 0
+            else:
+                break
+
         i += 1
         rate.sleep()
+
+    while True:
+        input('Press [Enter] to run guide mode for 10s and move robot to near the strat configuration.')
+        fa.apply_effector_forces_torques(10, 0, 0, 0)
+
+        while True:
+            inp = input('Would you like to [c]ontinue or [r]erun guide mode? ')
+            if len(inp) == 1 and inp in 'cr':
+                break
+            print('Please enter a valid input! Only c and r are accepted!')
+
+        if inp == 'c':
+            break
+
+    print('Running plan...')
+    fa.goto_joints(joints_start)
+    forward_plan = plan[::5]
+    backward_plan = forward_plan[::-1]
+
+    while True:
+        for joints in tqdm(forward_plan):
+            fa.goto_joints(joints, duration=0.5)
+        sleep(1)
+        for joints in tqdm(backward_plan):
+            fa.goto_joints(joints, duration=0.5)
