@@ -13,5 +13,5 @@ if __name__ == '__main__':
     pose = fa.get_pose()
     joints = fa.get_joints()
 
-    print('pose is: {}'.format(pose.translation))
-    print('joints are: {}'.format(joints))
+    print('position is: {}'.format(repr(pose.translation)))
+    print('joints are: {}'.format(repr(joints)))
