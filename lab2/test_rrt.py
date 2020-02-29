@@ -7,7 +7,7 @@ from frankapy import FrankaArm
 
 from franka_robot import FrankaRobot 
 from collision_boxes_publisher import CollisionBoxesPublisher
-from rrt_solutions import RRT
+from rrt_connect import RRTConnect
 
 
 if __name__ == '__main__':
@@ -70,9 +70,9 @@ if __name__ == '__main__':
     joints_target = joints_start.copy()
     joints_target[0] = np.deg2rad(45)
 
-    rrt = RRT(fr, is_in_collision)
+    rrtc = RRTConnect(fr, is_in_collision)
     constraint = None # ee_upright_constraint
-    plan = rrt.plan(joints_start, joints_target, constraint)
+    plan = rrtc.plan(joints_start, joints_target, constraint)
     
     i = 0
     collision_boxes_publisher = CollisionBoxesPublisher('collision_boxes')
@@ -83,41 +83,43 @@ if __name__ == '__main__':
         fr.publish_collision_boxes(joints)
         collision_boxes_publisher.publish_boxes(boxes)
 
-        if i > len(plan) * 3:
-            while True:
-                inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
-                if len(inp) == 1 and inp in 'cr':
+        if args.run_on_robot:
+            if i > len(plan) * 3:
+                while True:
+                    inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
+                    if len(inp) == 1 and inp in 'cr':
+                        break
+                    print('Please enter a valid input! Only c and r are accepted!')
+                if inp == 'r':
+                    i = 0
+                else:
                     break
-                print('Please enter a valid input! Only c and r are accepted!')
-            if inp == 'r':
-                i = 0
-            else:
-                break
 
         i += 1
         rate.sleep()
+    
+    if args.run_on_robot:
+        while True:
+            input('Press [Enter] to run guide mode for 10s and move robot to near the strat configuration.')
+            fa.apply_effector_forces_torques(10, 0, 0, 0)
 
-    while True:
-        input('Press [Enter] to run guide mode for 10s and move robot to near the strat configuration.')
-        fa.apply_effector_forces_torques(10, 0, 0, 0)
+            while True:
+                inp = input('Would you like to [c]ontinue or [r]erun guide mode? ')
+                if len(inp) == 1 and inp in 'cr':
+                    break
+                print('Please enter a valid input! Only c and r are accepted!')
+
+            if inp == 'c':
+                break
+
+        print('Running plan...')
+        fa.goto_joints(joints_start)
+        forward_plan = plan[::5]
+        backward_plan = forward_plan[::-1]
 
         while True:
-            inp = input('Would you like to [c]ontinue or [r]erun guide mode? ')
-            if len(inp) == 1 and inp in 'cr':
-                break
-            print('Please enter a valid input! Only c and r are accepted!')
-
-        if inp == 'c':
-            break
-
-    print('Running plan...')
-    fa.goto_joints(joints_start)
-    forward_plan = plan[::5]
-    backward_plan = forward_plan[::-1]
-
-    while True:
-        for joints in tqdm(forward_plan):
-            fa.goto_joints(joints, duration=0.5)
-        sleep(1)
-        for joints in tqdm(backward_plan):
-            fa.goto_joints(joints, duration=0.5)
+            for joints in tqdm(forward_plan):
+                fa.goto_joints(joints, duration=0.5)
+            sleep(1)
+            for joints in tqdm(backward_plan):
+                fa.goto_joints(joints, duration=0.5)
