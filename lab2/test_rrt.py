@@ -114,12 +114,14 @@ if __name__ == '__main__':
 
         print('Running plan...')
         fa.goto_joints(joints_start)
-        forward_plan = plan[::5]
+        forward_plan = plan[::4]
         backward_plan = forward_plan[::-1]
 
         while True:
             for joints in tqdm(forward_plan):
-                fa.goto_joints(joints, duration=0.5)
+                fa.goto_joints(joints, duration=max(float(max(joints - fa.get_joints()) / 0.1), 1))
+                sleep(0.1)
             sleep(1)
             for joints in tqdm(backward_plan):
-                fa.goto_joints(joints, duration=0.5)
+                fa.goto_joints(joints, duration=max(float(max(joints - fa.get_joints()) / 0.1), 1))
+                sleep(0.1)
