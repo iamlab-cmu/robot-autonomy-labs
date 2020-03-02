@@ -85,13 +85,39 @@ class RRTConnect:
         return True
 
     def extend(self, tree_0, tree_1, constraint=None):
-        '''
-        TODO: Implement extend for RRT Connect
+        while True:
+            q_sample = self.sample_valid_joints()
 
-        - Only perform self.project_to_constraint if constraint is not None
-        - Use self._is_seg_valid, self._q_step_size, self._connect_dist
-        '''
-        pass
+            times = {}
+
+            s = time()
+            node_id_near, dist = tree_0.get_nearest_node(q_sample)
+            times['nn_query'] = time() - s
+            q_near = tree_0.get_point(node_id_near)
+            q_new = q_near + (q_sample - q_near) / dist * self._q_step_size
+
+            if constraint is not None:
+                s = time()
+                q_new = self.project_to_constraint(q_new, constraint)
+                times['constraint'] = time() - s
+
+            s = time()
+            in_col = self._is_in_collision(q_new)
+            times['collision'] = time() - s
+            if in_col:
+                continue
+
+            s = time()
+            node_id_new = tree_0.insert_new_node(q_new, node_id_near)
+            times['nn_insert'] = time() - s
+
+            q_near_1_id, dist = tree_1.get_nearest_node(q_new)
+            if dist < self._connect_dist and self._is_seg_valid(q_new, tree_1.get_point(q_near_1_id)):
+                return True, node_id_new, q_near_1_id, dist
+
+            print(' | '.join(['{}:{:.2f}'.format(key, value * 1000) for key, value in times.items()]))
+
+            return False, node_id_new, q_near_1_id, dist
 
     def plan(self, q_start, q_target, constraint=None):
         tree_0 = SimpleTree(len(q_start))
@@ -102,14 +128,30 @@ class RRTConnect:
 
         q_start_is_tree_0 = True
 
+        savers = {
+            k: AsyncSaver('.', 'sampled_qs_{}'.format(k), save_every=100)
+            for k in [0, 1, 'dist']
+        }
+        for saver in savers.values():
+            saver.start()
+
         s = time()
         for n_nodes_sampled in range(self._max_n_nodes):
             if n_nodes_sampled > 0 and n_nodes_sampled % 100 == 0:
                 print('RRT: Sampled {} nodes'.format(n_nodes_sampled))
 
-            reached_target, node_id_new, node_id_1 = self.extend(tree_0, tree_1, constraint)
+            reached_target, node_id_new, node_id_1, dist = self.extend(tree_0, tree_1, constraint)
+
+            pt = tree_0.get_point(node_id_new)
+            if q_start_is_tree_0:
+                savers[0].save(pt)
+            else:
+                savers[1].save(pt)
+            savers['dist'].save(dist)
 
             if reached_target:
+                for saver in savers.values():
+                    saver.stop()
                 break
 
             q_start_is_tree_0 = not q_start_is_tree_0

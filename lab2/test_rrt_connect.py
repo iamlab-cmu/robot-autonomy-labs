@@ -24,9 +24,13 @@ if __name__ == '__main__':
     else:
         rospy.init_node('rrt')
 
+    '''
+    TODO: Replace obstacle box w/ the box specs in your workspace:
+    [x, y, z, r, p, y, sx, sy, sz]
+    '''
     boxes = np.array([
         # obstacle
-        [0.4, 0, 0.25, 0, 0, 0, 0.3, 0.05, 0.5],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
         # sides
         [0.15, 0.46, 0.5, 0, 0, 0, 1.2, 0.01, 1.1],
         [0.15, -0.46, 0.5, 0, 0, 0, 1.2, 0.01, 1.1],
@@ -65,10 +69,11 @@ if __name__ == '__main__':
         err, grad = None, None
         return err, grad
 
-    joints_start = fr.home_joints.copy()
-    joints_start[0] = -np.deg2rad(45)
-    joints_target = joints_start.copy()
-    joints_target[0] = np.deg2rad(45)
+    '''
+    TODO: Fill in start and target joint positions 
+    '''
+    joints_start = None
+    joints_target = None
 
     rrtc = RRTConnect(fr, is_in_collision)
     constraint = None # ee_upright_constraint
@@ -114,7 +119,7 @@ if __name__ == '__main__':
 
         print('Running plan...')
         fa.goto_joints(joints_start)
-        forward_plan = plan[::4]
+        forward_plan = plan[::4] # subsample plan by 1 in 4
         backward_plan = forward_plan[::-1]
 
         while True:
