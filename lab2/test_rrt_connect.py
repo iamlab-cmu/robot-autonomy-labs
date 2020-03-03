@@ -81,21 +81,26 @@ if __name__ == '__main__':
     
     collision_boxes_publisher = CollisionBoxesPublisher('collision_boxes')
     rate = rospy.Rate(10)
+    i = 0
     while not rospy.is_shutdown():
+        rate.sleep()
         joints = plan[i % len(plan)]
         fr.publish_joints(joints)
         fr.publish_collision_boxes(joints)
         collision_boxes_publisher.publish_boxes(boxes)
 
+        i += 1
         if args.run_on_robot:
-            while True:
-                inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
-                if len(inp) == 1 and inp in 'cr':
+            if i == len(plan) - 1:
+                while True:
+                    inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
+                    if inp in ('r', 'c'):
+                        break
+                    print('Please enter a valid input! Only c and r are accepted!')
+                if inp == 'r':
+                    i = 0
+                else:
                     break
-                print('Please enter a valid input! Only c and r are accepted!')
-            if inp == 'c':
-                break
-        rate.sleep()
     
     if args.run_on_robot:
         while True:
@@ -104,7 +109,7 @@ if __name__ == '__main__':
 
             while True:
                 inp = input('Would you like to [c]ontinue or [r]erun guide mode? ')
-                if len(inp) == 1 and inp in 'cr':
+                if inp in ('r', 'c'):
                     break
                 print('Please enter a valid input! Only c and r are accepted!')
 
