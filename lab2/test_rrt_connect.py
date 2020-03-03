@@ -79,7 +79,6 @@ if __name__ == '__main__':
     constraint = None # ee_upright_constraint
     plan = rrtc.plan(joints_start, joints_target, constraint)
     
-    i = 0
     collision_boxes_publisher = CollisionBoxesPublisher('collision_boxes')
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
@@ -89,18 +88,13 @@ if __name__ == '__main__':
         collision_boxes_publisher.publish_boxes(boxes)
 
         if args.run_on_robot:
-            if i > len(plan) * 3:
-                while True:
-                    inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
-                    if len(inp) == 1 and inp in 'cr':
-                        break
-                    print('Please enter a valid input! Only c and r are accepted!')
-                if inp == 'r':
-                    i = 0
-                else:
+            while True:
+                inp = input('Would you like to [c]ontinue to execute the plan or [r]eplay the plan? ')
+                if len(inp) == 1 and inp in 'cr':
                     break
-
-        i += 1
+                print('Please enter a valid input! Only c and r are accepted!')
+            if inp == 'c':
+                break
         rate.sleep()
     
     if args.run_on_robot:
