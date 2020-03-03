@@ -1,7 +1,6 @@
 from time import time
 import numpy as np
 from scipy.optimize import minimize, LinearConstraint, NonlinearConstraint
-from async_savers import AsyncSaver
 
 from kdtree import KDTree
 from franka_robot import FrankaRobot
