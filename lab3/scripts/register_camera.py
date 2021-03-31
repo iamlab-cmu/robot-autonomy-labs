@@ -5,8 +5,6 @@ Authors: Jeff Mahler and Brenton Chu
 """ 
 import argparse
 import cv2
-import IPython
-import logging
 import numpy as np
 import os
 import sys
@@ -14,16 +12,12 @@ import time
 import traceback
 import rospy
 
-from mpl_toolkits.mplot3d import Axes3D
-
 from autolab_core import Point, PointCloud, RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory, CameraIntrinsics
 
 from frankapy import FrankaArm
 
-if __name__ == '__main__':
-    logging.getLogger().setLevel(logging.INFO)
-    logging.info("Hello world")	
+if __name__ == '__main__': 
 
     # parse args
     parser = argparse.ArgumentParser(description='Register a camera to a robot')
@@ -32,13 +26,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config_filename = args.config_filename
     config = YamlConfig(config_filename)
-    rospy.init_node('register_camera', anonymous=True)
 
     robot = FrankaArm()
     T_ee_world = robot.get_pose()
 
     # Get T_cb_world by using T_ee_world*T_cb_ee
-    T_cb_ee = RigidTransform(rotation=np.array([[0, 0, 1],[-1, 0, 0],[0, -1, 0]]),
+    T_cb_ee = RigidTransform(rotation=np.array([[0, 0, 1],[1, 0, 0],[0, 1, 0]]),
                              translation=np.array([0.02275, 0, -0.0732]), 
                              from_frame='cb', to_frame='franka_tool')
     # T_cb_ee = RigidTransform(rotation=np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]]),
@@ -56,8 +49,6 @@ if __name__ == '__main__':
         else:
             registration_config = {}
         registration_config.update(config['chessboard_registration'])
-
-	logging.info("here")
         
         # open sensor
         try:
@@ -72,14 +63,6 @@ if __name__ == '__main__':
             else:
                 ir_intrinsics = sensor.ir_intrinsics
             rospy.loginfo('Sensor initialized')
-
-            # ==== DEBUG: Visualize what the camera sees ====
-            # rgb_im, depth_im, _ = sensor.frames()
-            # img = rgb_im.raw_data.astype(np.uint8)
-            # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            # img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            # cv2.imshow('hello_world', img_rgb)
-            # cv2.waitKey(1000)
 
             # register
             reg_result = CameraChessboardRegistration.register(sensor, registration_config)

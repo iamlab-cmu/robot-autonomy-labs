@@ -8,7 +8,7 @@ from perception import CameraIntrinsics
 from utils import *
 
 AZURE_KINECT_INTRINSICS = 'calib/azure_kinect.intr'
-AZURE_KINECT_EXTRINSICS = 'calib/azure_kinect_overhead_to_world.tf'
+AZURE_KINECT_EXTRINSICS = 'calib/azure_kinect_overhead/azure_kinect_overhead_to_world.tf'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -34,7 +34,6 @@ if __name__ == '__main__':
 
     azure_kinect_rgb_image = get_azure_kinect_rgb_image(cv_bridge)
     azure_kinect_depth_image = get_azure_kinect_depth_image(cv_bridge)
-        #print(azure_kinect_depth_image)
 
     object_image_position = np.array([800, 800])
 
@@ -50,7 +49,7 @@ if __name__ == '__main__':
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    object_z_height = 0.03
+    object_z_height = 0.02
     intermediate_pose_z_height = 0.19
 
     object_center_point_in_world = get_object_center_point_in_world(object_image_position[0],
