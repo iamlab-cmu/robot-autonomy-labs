@@ -18,35 +18,22 @@ def FindNearest(prevPoints,newPoint):
 fr = FrankaRobot()
 
 fa = FrankaArm()
-# else:
-# rospy.init_node('rrt')
-np.random.seed(4)
-# deg_to_rad = np.pi/180.
+
+np.random.seed(0)
+deg_to_rad = np.pi/180.
 
 #Initialize robot object
 mybot=Locobot.Locobot()
 
-#Create environment obstacles - # these are blocks in the environment/scene (not part of robot) 
-boxes = np.array([
-	# obstacle
-	[0.44680895, -0.00402793, 0.126119755, 0, 0, 0, 0.17,0.1,0.26],
-	# sides
-# 	[0.15, 0.46, 0.5, 0, 0, 0, 1.2, 0.01, 1.1],
-# 	[0.15, -0.46, 0.5, 0, 0, 0, 1.2, 0.01, 1.1],
-# 	# back
-# 	[-0.41, 0, 0.5, 0, 0, 0, 0.01, 1, 1.1],
-# 	# front
-# 	[0.75, 0, 0.5, 0, 0, 0, 0.01, 1, 1.1],
-# 	# top
-# 	[0.2, 0, 1, 0, 0, 0, 1.2, 1, 0.01],
-# 	# bottom
-# 	[0.2, 0, -0.05, 0, 0, 0, 1.2, 1, 0.01]
-])
 pointsObs=[]
 axesObs=[]
 
-envpoints, envaxes = rt.BlockDesc2Points(rt.rpyxyz2H([0,0.,0.], [0.44680895, -0.00402793, 0.126119755]),[0.33,0.1,0.3])
+
+########  TODO: Fill in Box Parameters Here  ############################################
+envpoints, envaxes = rt.BlockDesc2Points(rt.rpyxyz2H([0,0.,0.], [0, 0, 0]),[0, 0, 0])
 pointsObs.append(envpoints), axesObs.append(envaxes)
+
+#########################################################################################
 
 envpoints, envaxes = rt.BlockDesc2Points(rt.rpyxyz2H([0,0.,0.], [0.15, 0.46, 0.5]),[1.2, 0.01, 1.1])
 pointsObs.append(envpoints), axesObs.append(envaxes)
@@ -63,14 +50,9 @@ envpoints, envaxes = rt.BlockDesc2Points(rt.rpyxyz2H([0,0.,0.], [0.2, 0, -0.05])
 pointsObs.append(envpoints), axesObs.append(envaxes)
 
 
-# define start and goal
-deg_to_rad = np.pi/180.
-qGoal=[-0.53382925,  0.10712698,  0.01386268, -2.45663784,  0.05328225,
-		2.64689502,  0.22742127] 
-qInit=[-0.28568509,  0.08583521,  0.83456529, -2.4694526 ,  0.09138187,
-		2.59050709,  1.2237876 ] 
-# mybot.PlotCollisionBlockPoints(qInit, pointsObs)
-# mybot.PlotCollisionBlockPoints(qGoal, pointsObs)
+############# TODO: Define Start and Goal Joints #######################
+qGoal=None
+qInit=None
 
 #TODO - Create RRT to find path to a goal configuration
 rrtVertices=[]
@@ -79,12 +61,10 @@ rrtEdges=[]
 rrtVertices.append(qInit)
 rrtEdges.append(0)
 
-# thresh=0.25
-thresh=0.1
-# thresh=0.01
+thresh=0.25
 FoundSolution=False
 
-while len(rrtVertices) < 1000 and not FoundSolution:
+while len(rrtVertices) < 3000 and not FoundSolution:
 	print(len(rrtVertices))
 	qRand = mybot.SampleRobotConfig()
 	if np.random.uniform(0, 1) < 0.01:
