@@ -84,14 +84,10 @@ if FoundSolution:
 	for i in range(150):
 		pass
 
-	robot = vpi.vBot()
-	robot.connect()
 
-	for q in plan:
-		robot.move(q)
-		time.sleep(1)
-
-	robot.destroy()
+	fa.reset_joints()
+	for joint in plan:
+		fa.goto_joints(joint)
 
 else:
 	print("No solution found")
