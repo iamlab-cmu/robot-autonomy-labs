@@ -19,7 +19,6 @@ fr = FrankaRobot()
 
 fa = FrankaArm()
 
-np.random.seed(0)
 deg_to_rad = np.pi/180.
 
 #Initialize robot object
